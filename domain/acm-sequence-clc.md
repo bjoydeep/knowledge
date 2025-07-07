@@ -5,11 +5,11 @@ sequenceDiagram
     participant ACMConsole as ACM Console
 
     box Hub Cluster
-        participant HubController as "Hub Controller"
+        participant HiveController as "Hive Controller"
         participant ClusterImportController as "Cluster Import Controller"
+        participant RegistrationController as "Registration Controller"
         participant AddonManager as "Add-on Manager"
         participant AddonSpecificControllers as "Add-on Specific Controllers"
-        participant RegistrationController as "Registration Controller"
     end
 
     box Managed Cluster
@@ -22,47 +22,50 @@ sequenceDiagram
     User->>ACMConsole: Initiates **Cluster Creation** [1]
     activate ACMConsole
 
-    ACMConsole->>HubController: Creates **ClusterDeployment, ManagedCluster, & ClusterAddonConfig CRs** (on Hub Cluster) [1]
+    ACMConsole->>HubCluster: Creates **ClusterDeployment, ManagedCluster, & ClusterAddonConfig CRs** (on Hub Cluster) [1]
+    Note over ACMConsole,HubCluster: These CRs are then reconciled by respective controllers.
     deactivate ACMConsole
-    activate HubController
 
-    HubController->>Managed Cluster: **Provisions New Cluster** [1]
-    deactivate HubController
+    HubCluster->>HiveController: ClusterDeployment CR created for provisioning
+    activate HiveController
+    HiveController->>Managed Cluster: **Provisions New Cluster** (via ClusterDeployment) [1-3]
+    Note over HiveController: Hive is the dedicated project for IPI cluster deployment. [3]
+    deactivate HiveController
 
     Managed Cluster-->>ClusterImportController: Cluster Provisioning Complete (Hub Cluster's **ClusterDeployment CR** updated with admin kubeconfig) [1]
     activate ClusterImportController
-
-    ClusterImportController->>Managed Cluster: Deploys **Klusterlet Operator** (to Managed Cluster using kubeconfig) [2]
+    ClusterImportController->>Managed Cluster: Deploys **Klusterlet Operator** (to Managed Cluster using kubeconfig) [4]
+    ClusterImportController->>Managed Cluster: Creates **Klusterlet CR** (on Managed Cluster) [4]
     deactivate ClusterImportController
     activate KlusterletOperator
 
-    KlusterletOperator->>Managed Cluster: Creates **Cluster CR** (on Managed Cluster) [2]
-    KlusterletOperator->>KlusterletAgent: Deploys **Klusterlet Agent** [2]
+    KlusterletOperator->>KlusterletAgent: Deploys **Klusterlet Agent** (based on Klusterlet CR) [4]
     deactivate KlusterletOperator
     activate KlusterletAgent
 
-    KlusterletAgent->>RegistrationController: **Registers Managed Cluster** with Hub Cluster [2]
+    KlusterletAgent->>RegistrationController: **Registers Managed Cluster** with Hub Cluster [4]
     activate RegistrationController
-    RegistrationController-->>KlusterletAgent: Registration Acknowledged
+    RegistrationController-->>HubCluster: Registration Acknowledged (updates **ManagedCluster CR** & **Cluster Lease CR** on Hub) [4-6]
     deactivate RegistrationController
 
     loop Continuous Status Updates
-        KlusterletAgent->>HubController: Updates **ManagedCluster CR** & **Cluster List CRs** Status (on Hub Cluster) [2]
+        KlusterletAgent->>HubCluster: Updates **ManagedCluster CR Status** (on Hub Cluster) [4]
+        KlusterletAgent->>HubCluster: Updates **Cluster Lease CR Status** (on Hub Cluster) [4-6]
     end
 
-    %% Add-on Management Workflow
+    %% Add-on Management Workflow (retained for context, as it's a subsequent phase)
     opt Add-on Management Flow
-        AddonManager->>AddonSpecificControllers: Creates **ManagedClusterAddon CR** (on Hub Cluster) [2]
+        AddonManager->>AddonSpecificControllers: Creates **ManagedClusterAddon CR** (on Hub Cluster) [4]
         activate AddonSpecificControllers
-        AddonSpecificControllers->>Managed Cluster: Reconciles **ManagedClusterAddon CRs** & Generates **Manifest Works** (for Add-on Agent deployment) [2]
+        AddonSpecificControllers->>Managed Cluster: Reconciles **ManagedClusterAddon CRs** & Generates **Manifest Works** (for Add-on Agent deployment) [4]
         deactivate AddonSpecificControllers
 
-        KlusterletAgent->>Managed Cluster: **Pulls Manifest Works** [2]
-        KlusterletAgent->>AddonAgent: Applies Manifest Works (Installs **Add-on Agent**) [2]
+        KlusterletAgent->>Managed Cluster: **Pulls Manifest Works** [4]
+        KlusterletAgent->>AddonAgent: Applies Manifest Works (Installs **Add-on Agent**) [4]
         activate AddonAgent
 
-        AddonAgent->>KlusterletAgent: Creates **Add-on List** (on Managed Cluster) [2]
-        KlusterletAgent->>AddonAgent: Reads **Add-on List CRs** [2]
-        KlusterletAgent->>AddonManager: Updates **ManagedClusterAddon CR Status** (on Hub Cluster) [2]
+        AddonAgent->>KlusterletAgent: Creates **Add-on List** (on Managed Cluster) [4]
+        KlusterletAgent->>AddonAgent: Reads **Add-on List CRs** [4]
+        KlusterletAgent->>AddonManager: Updates **ManagedClusterAddon CR Status** (on Hub Cluster) [4]
         deactivate AddonAgent
     end
