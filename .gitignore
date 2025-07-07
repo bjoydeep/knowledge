@@ -1,0 +1,8 @@
+.dg/
+.DS_Store
+.ipynb_checkpoints/
+src/interface_db.py
+src/interface_kg.py
+domain/ocm-1.md
+cypher/cypher-ocm.md
+.env
