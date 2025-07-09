@@ -55,17 +55,17 @@ sequenceDiagram
 
     %% Add-on Management Workflow (retained for context, as it's a subsequent phase)
     opt Add-on Management Flow
-        AddonManager->>AddonSpecificControllers: Creates **ManagedClusterAddon CR** (on Hub Cluster) [4]
+        AddonManager->>HubCluster: Creates **ManagedClusterAddon CR** (on Hub Cluster) [1]
         activate AddonSpecificControllers
-        AddonSpecificControllers->>Managed Cluster: Reconciles **ManagedClusterAddon CRs** & Generates **Manifest Works** (for Add-on Agent deployment) [4]
+        AddonSpecificControllers->>HubCluster: Reconciles **ManagedClusterAddon CRs** & Generates **Manifest Works** (for Add-on Agent deployment) [1]
         deactivate AddonSpecificControllers
 
-        KlusterletAgent->>Managed Cluster: **Pulls Manifest Works** [4]
-        KlusterletAgent->>AddonAgent: Applies Manifest Works (Installs **Add-on Agent**) [4]
+        KlusterletAgent->>HubCluster: **Pulls Manifest Works** [1]
+        KlusterletAgent->>Managed Cluster: Applies Manifest Works (Installs **Add-on Agent**) [1]
         activate AddonAgent
 
-        AddonAgent->>KlusterletAgent: Creates **Add-on List** (on Managed Cluster) [4]
-        KlusterletAgent->>AddonAgent: Reads **Add-on List CRs** [4]
-        KlusterletAgent->>AddonManager: Updates **ManagedClusterAddon CR Status** (on Hub Cluster) [4]
+        AddonAgent->>Managed Cluster: Creates **Add-on Lease CRs** (on Managed Cluster) [1]
+        KlusterletAgent->>Managed Cluster: Reads **Add-on Lease CRs** [1]
+        KlusterletAgent->>HubCluster: Updates **ManagedClusterAddon CR Status** (on Hub Cluster) [1]
         deactivate AddonAgent
     end
