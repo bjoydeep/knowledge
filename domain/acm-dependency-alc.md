@@ -1,3 +1,4 @@
+```mermaid
 graph TD
     subgraph Hub Cluster
         User --> A[ApplicationSet]
@@ -135,6 +136,7 @@ graph TD
     class GITHUB,HELM_REPOSITORIES,OBJECT_STORAGE_SYSTEMS,ANSIBLE_TOWER external
     class SEARCH,SERVER_FOUNDATION,CONSOLE other
     class ACM_APP,ACM_CHANNEL,ACM_SUB,ACM_SUB_STATUS,ACM_PLACEMENT,ACM_SUB_REPORT,ACM_CLUSTER_PERM,ACM_GITOPS_CLUSTER,ACM_HELMRELEASE crd
+```
 
 **Explanation of Application Lifecycle Dependencies:**
 
