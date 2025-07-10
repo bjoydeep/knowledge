@@ -1,3 +1,4 @@
+```mermaid
 graph TD
     subgraph Hub Cluster
         User --> A[Define Policy CRs & PolicyAutomations]
@@ -47,7 +48,7 @@ graph TD
         CERT_POLICY[cert-policy-controller] -- Enforces --> CERT_POLICIES[Certificate Policies]
         CONFIG_POLICY[config-policy-controller] -- Enforces --> CONFIG_POLICIES[Configuration Policies]
         OPERATOR_POLICY[OperatorPolicy Controller] -- Enforces --> OPERATOR_POLICIES[Operator Policies]
-        IAM_POLICY[iam-policy-controller] -- Enforces --> IAM_POLICIES[IAM Policies<br/>(Deprecated ACM 2.10)]
+        IAM_POLICY[iam-policy-controller] -- Enforces --> IAM_POLICIES[IAM Policies - Deprecated ACM 2.10]
         
         %% Gatekeeper Components
         GATEKEEPER_OP[gatekeeper-operator-controller-manager] -- Manages --> GATEKEEPER_CM[gatekeeper-controller-manager]
@@ -118,7 +119,7 @@ graph TD
     class GIT_REPO,ANSIBLE_TOWER,COMMUNITY_POLICIES,KUSTOMIZE,EXTERNAL_ALERTING external
     class APP_LIFECYCLE,OBSERVABILITY,SERVER_FOUNDATION other
     class IAM_POLICY deprecated
-
+```
 **Explanation of GRC Dependencies:**
 
 The Governance, Risk & Compliance (GRC) component in ACM has comprehensive dependencies across multiple layers:

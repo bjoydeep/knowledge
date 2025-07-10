@@ -1,3 +1,4 @@
+```mermaid
 graph TD
     subgraph Hub Cluster
         A[Search-v2-operator] --> B(Search-indexer)
@@ -92,6 +93,7 @@ graph TD
     class EXTERNAL_CLIENTS,EXTERNAL_CLIENTS external
     class D_PVC,STORAGE storage
     class SF_PROXY,CERT_CA,SEARCH_CERTS,RBAC_ROLES,AUTH_MECH security
+```
 
 **Explanation of Search V2 Dependencies:**
 
